@@ -4,18 +4,10 @@ import torch
 def args_parser():
     parser = argparse.ArgumentParser()
     #dataset and model
-    parser.add_argument(
-        '--dataset',
-        type = str,
-        default = 'cifar10',
-        help = 'name of the dataset: mnist, cifar10'
-    )
-    parser.add_argument(
-        '--model',
-        type = str,
-        default = 'cnn',
-        help='name of model. mnist: logistic, lenet; cifar10: cnn_tutorial, cnn_complex'
-    )
+    parser.add_argument('--dataset', type=str, default='IOT', help='Dataset name')
+    parser.add_argument('--model', type=str, default='simple_nn', help='Model type')
+    parser.add_argument('--input_size', type=int, default=20, help='Input feature size')
+    parser.add_argument('--num_classes', type=int, default=3, help='Number of output classes')
     parser.add_argument(
         '--input_channels',
         type = int,
@@ -167,6 +159,12 @@ def args_parser():
         type=int
     )
 
+    parser.add_argument('--num_fogs', type=int, default=2, help="number of fog nodes")
+    parser.add_argument('--num_fog_aggregation', type=int, default=2, help="fog aggregation times")
+    parser.add_argument('--cuda', action='store_true', help="use CUDA")
+     # Add flags to enable or disable fog and edge nodes
+    parser.add_argument('--enable_fog', type=bool, default=True, help='Enable fog nodes in the hierarchy')
+    parser.add_argument('--enable_edge', type=bool, default=True, help='Enable edge nodes in the hierarchy')
 
     args = parser.parse_args()
     args.cuda = torch.cuda.is_available()
