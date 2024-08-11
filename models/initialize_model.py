@@ -22,7 +22,38 @@ class MTL_Model(object):
         self.optimizer_state_dict = self.optimizer.state_dict()
         self.criterion = nn.CrossEntropyLoss()
 
-    def exp_lr_sheduler(self, epoch):
+    def to(self, device):
+        self.shared_layers = self.shared_layers.to(device)
+        if self.specific_layers:
+            self.specific_layers = self.specific_layers.to(device)
+        return self
+
+    def train(self, input_batch, label_batch):
+        self.shared_layers.train(True)
+        if self.specific_layers:
+            self.specific_layers.train(True)
+        if self.specific_layers:
+            output_batch = self.specific_layers(self.shared_layers(input_batch))
+        else:
+            output_batch = self.shared_layers(input_batch)
+        self.optimizer.zero_grad()
+        batch_loss = self.criterion(output_batch, label_batch)
+        batch_loss.backward()
+        self.optimizer.step()
+        return batch_loss.item()
+
+    def evaluate(self, input_batch):
+        self.shared_layers.eval()
+        if self.specific_layers:
+            self.specific_layers.eval()
+        with torch.no_grad():
+            if self.specific_layers:
+                output_batch = self.specific_layers(self.shared_layers(input_batch))
+            else:
+                output_batch = self.shared_layers(input_batch)
+        return output_batch
+
+    def exp_lr_scheduler(self, epoch):
         if (epoch + 1) % self.lr_decay_epoch == 0:
             for param_group in self.optimizer.param_groups:
                 param_group['lr'] *= self.lr_decay
@@ -41,7 +72,7 @@ class MTL_Model(object):
         for param_group in self.optimizer.param_groups:
             print(param_group['lr'])
 
-    def optimize_model(self, input_batch, label_batch):
+    def train(self, input_batch, label_batch):
         self.shared_layers.train(True)
         if self.specific_layers:
             self.specific_layers.train(True)
@@ -55,14 +86,13 @@ class MTL_Model(object):
         self.optimizer.step()
         return batch_loss.item()
 
-    def test_model(self, input_batch):
-        self.shared_layers.train(False)
+    def evaluate(self, input_batch):
+        self.shared_layers.eval()
         with torch.no_grad():
             if self.specific_layers:
                 output_batch = self.specific_layers(self.shared_layers(input_batch))
             else:
                 output_batch = self.shared_layers(input_batch)
-        self.shared_layers.train(True)
         return output_batch
 
     def update_model(self, new_shared_layers):

@@ -29,13 +29,23 @@ class Edge:
         # Send data/model from edge to client
         client.receive_from_edge(self.edge_model)
     
-    def local_update(self):
-        # Perform local updates at the edge
-        # Example: call local training on all clients
+    # def local_update(self, num_iter, device):
+    #     # Perform local updates at the edge
+    #     # Example: call local training on all clients
+    #     for client in self.clients:
+    #         client.local_update(num_iter,device)
+
+    def local_update(self, num_iter, device):
+        total_loss = 0
         for client in self.clients:
-            client.local_update()
+            client_loss = client.local_update(num_iter, device)
+            total_loss += client_loss
+        return total_loss / len(self.clients)
 
-    def receive_from_fog(self, model):
+    def receive_from_fog(self, fog_model):
         # Receive updated model or data from the fog
-        self.edge_model = model
+        self.edge_model = fog_model
 
+    def receive_model_update_from_fog(self, fog):
+        # Get the model update from the fog
+        self.receive_from_fog(fog.fog_model)

@@ -149,11 +149,6 @@ def args_parser():
         type = int
     )
     parser.add_argument(
-        '--global_model',
-        default=1,
-        type=int
-    )
-    parser.add_argument(
         '--local_model',
         default=0,
         type=int
@@ -163,8 +158,10 @@ def args_parser():
     parser.add_argument('--num_fog_aggregation', type=int, default=2, help="fog aggregation times")
     parser.add_argument('--cuda', action='store_true', help="use CUDA")
      # Add flags to enable or disable fog and edge nodes
-    parser.add_argument('--enable_fog', type=bool, default=True, help='Enable fog nodes in the hierarchy')
-    parser.add_argument('--enable_edge', type=bool, default=True, help='Enable edge nodes in the hierarchy')
+    parser.add_argument('--num_epochs', type=int, default=10, help="Number of epochs")
+    parser.add_argument('--global_model', action='store_true', help="Use global model")
+    parser.add_argument('--enable_edge', action='store_true', help="Enable edge servers")
+    parser.add_argument('--enable_fog', action='store_true', help="Enable fog nodes")
 
     args = parser.parse_args()
     args.cuda = torch.cuda.is_available()
