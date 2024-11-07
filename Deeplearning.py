@@ -10,7 +10,6 @@ from flax.training import train_state
 import optax
 import jax.tree_util as jtu 
 
-# Define a deeper Flax model
 class DeepModel(nn.Module):
     num_classes: int
 
@@ -29,7 +28,6 @@ class DeepModel(nn.Module):
         x = nn.Dense(features=self.num_classes)(x)
         return x
 
-# Client class
 class Client:
     def __init__(self, id, X, y, model):
         self.id = id
@@ -47,7 +45,7 @@ class Client:
         self.upload_cost += calculate_params_size(state.params)
         return state
 
-# Edge class
+
 class Edge:
     def __init__(self, id, clients):
         self.id = id
@@ -64,7 +62,6 @@ class Edge:
             return aggregated_state
         return None
 
-# Fog class
 class Fog:
     def __init__(self, id, edges):
         self.id = id
@@ -81,7 +78,6 @@ class Fog:
             return aggregated_state
         return None
 
-# Cloud class
 class Cloud:
     def __init__(self, fogs):
         self.fogs = fogs
@@ -91,7 +87,6 @@ class Cloud:
         self.download_cost += sum(calculate_params_size(state.params) for state in states)
         return average_states(states)
 
-# Helper functions
 def create_train_state(rng, learning_rate, model, input_shape):
     params = model.init(rng, jnp.ones(input_shape))
     tx = optax.adam(learning_rate)
@@ -121,7 +116,6 @@ def average_states(states):
 def calculate_params_size(params):
     return sum(x.size for x in jax.tree.leaves(params))
 
-# Load and preprocess data
 df = pd.read_csv('IOT_TEST.csv')
 labelencoder = LabelEncoder()
 df['type'] = labelencoder.fit_transform(df['type'])
@@ -131,7 +125,6 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 X_train, y_train = jnp.array(X_train, dtype=jnp.float32), jnp.array(y_train, dtype=jnp.int32)
 X_test, y_test = jnp.array(X_test, dtype=jnp.float32), jnp.array(y_test, dtype=jnp.int32)
 
-# Hyperparameters
 num_classes = len(np.unique(y))
 learning_rate = 0.001
 num_epochs = 10
@@ -140,7 +133,6 @@ num_clients = 10
 num_edges = 3
 num_fogs = 2
 
-# Initialize model and clients
 rng = jax.random.PRNGKey(0)
 model = DeepModel(num_classes=num_classes)
 input_shape = (1, X_train.shape[1])
@@ -156,7 +148,7 @@ def set_layer_status(layer, status):
         item.enabled = status
 
 
-set_layer_status(fogs, False)
+set_layer_status(fogs, True)
 edges[0].enabled = False
 edges[2].enabled = False
 
@@ -205,7 +197,6 @@ for epoch in range(num_epochs):
     else:
         global_state = cloud.aggregate(client_states)
 
-    # Calculate and print communication cost
     client_upload = sum(client.upload_cost for client in clients)
     edge_download = sum(edge.download_cost for edge in edges if edge.enabled)
     edge_upload = sum(edge.upload_cost for edge in edges if edge.enabled)
@@ -224,7 +215,6 @@ for epoch in range(num_epochs):
     print(f"  Cloud Download: {cloud_download}")
     print(f"  Total Cost: {total_cost}")
 
-    # Evaluate the model
     logits = global_state.apply_fn({'params': global_state.params}, X_test)
     y_pred = jnp.argmax(logits, axis=1)
     
@@ -234,7 +224,3 @@ for epoch in range(num_epochs):
     f1 = f1_score(y_test, y_pred, average='macro', zero_division=1)
     
     print(f"Epoch {epoch+1}: Accuracy={accuracy:.4f}, Precision={precision:.4f}, Recall={recall:.4f}, F1={f1:.4f}")
-
-# Example of disabling layers
-
-# You can run the training loop again here with the new configuration if desired

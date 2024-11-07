@@ -150,9 +150,9 @@ def set_layer_status(layer, status):
     for item in layer:
         item.enabled = status
 
-set_layer_status(fogs, False)
-# set_layer_status(edges, True)
-edges[0].enabled = False
+set_layer_status(fogs, True)
+set_layer_status(edges, True)
+edges[0].enabled = True
 # Training loop
 for epoch in range(num_epochs):
     # Reset costs for this epoch
